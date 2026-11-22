@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAV Investment Sphere</title>
+<style>
+:root{--navy:#10294c;--teal:#17677b;--bg:#f3f6fa;--card:#fff;--text:#172638;--muted:#64748b;--line:#dce4ec}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+header{background:linear-gradient(120deg,var(--navy),#147b82);color:white;padding:28px max(5%,calc((100% - 1100px)/2))}
+header small{letter-spacing:2px;font-weight:bold}header h1{font-size:34px;margin:18px 0 6px}header p{margin:0;opacity:.9}
+.wrap{max-width:1100px;margin:auto;padding:18px}
+nav{display:flex;gap:8px;overflow-x:auto;padding:4px 0 14px}
+nav button,.btn{border:0;border-radius:9px;padding:11px 15px;background:var(--teal);color:white;font-weight:bold;cursor:pointer;white-space:nowrap}
+nav button{background:white;color:var(--text);border:1px solid var(--line)}nav button.active{background:var(--teal);color:white}
+.btn.secondary{background:#e6eff2;color:var(--navy);border:1px solid #c7dce1}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:16px;margin-bottom:12px}
+.card h3{margin:0 0 8px}.muted{color:var(--muted);font-size:13px;line-height:1.55}
+input,select{width:100%;padding:11px;border:1px solid var(--line);border-radius:8px;background:white;color:var(--text);margin:5px 0 13px}
+label{font-size:13px;font-weight:bold}.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.result{background:#edf5f6;border:1px solid #cfe2e4;padding:15px;border-radius:10px;margin-top:13px}
+.big{font-size:27px;font-weight:bold;color:#12596a}.tag{font-size:11px;border:1px solid var(--line);border-radius:20px;padding:4px 8px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:10px 7px;border-bottom:1px solid var(--line)}
+details{padding:13px;border:1px solid var(--line);border-radius:10px;background:white;margin:8px 0}summary{cursor:pointer;font-weight:bold}
+footer{max-width:1100px;margin:auto;padding:18px;color:var(--muted);font-size:12px}
+.chart-wrap{height:280px;position:relative;margin-top:12px}.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.hidden{display:none}.planbtn{width:100%;text-align:left;background:white;color:var(--text);border:1px solid var(--line);border-radius:11px;padding:14px;cursor:pointer}.planbtn:hover{border-color:var(--teal)}
+.qr-box{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px;border:1px dashed #b9ced4;border-radius:12px;background:#f8fbfc;margin-top:12px;gap:10px}
+@media(max-width:600px){header h1{font-size:27px}.wrap{padding:12px}}
+</style>
+</head>
+<body>
+<header><small>DAV FINANCIAL MARKETS MANAGEMENT PROJECT</small><h1>DAV Investment Sphere</h1><p>InvestMate — Explore. Compare. Calculate. Learn.</p></header>
+<div class="wrap">
+<nav id="nav">
+<button class="active" data-page="home">Home</button>
+<button data-page="plans">39 Investment Plans</button>
+<button data-page="rates">Current Rates</button>
+<button data-page="calculator">Calculators</button>
+<button data-page="compare">Compare</button>
+<button data-page="inflation">Inflation</button>
+<button data-page="goals">Goal Planner</button>
+<button data-page="learn">Learn</button>
+<button data-page="quiz">Quiz</button>
+<button data-page="tax">Taxation</button>
+<button data-page="qrcode">QR Code</button>
+</nav>
+<main id="app"></main>
+</div>
+<footer>DAV Investment Sphere · Educational simulation only. Rates and calculations are illustrative or subject to scheme/provider confirmation. No guaranteed returns or personalised investment advice.</footer>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>
+const plans=[
+["Bank Savings Account","Banking","Low",null,"lump","A bank account that pays interest on eligible balances."],
+["Bank Fixed Deposit (FD)","Banking","Low–Moderate",null,"lump","A one-time deposit for a chosen tenure at a bank-published rate."],
+["Bank Recurring Deposit (RD)","Banking","Low–Moderate",null,"monthly","Regular monthly deposits that earn interest."],
+["Sweep-in FD","Banking","Low–Moderate",null,"lump","A savings account linked to fixed deposits, subject to bank rules."],
+["Post Office Savings Account","Government savings","Low",4,"lump","A savings account offered through India Post."],
+["Post Office RD – 5 Year","Government savings","Low",6.7,"monthly","Five-year recurring deposit."],
+["Post Office TD – 1 Year","Government savings","Low",6.9,"lump","One-year Post Office Time Deposit."],
+["Post Office TD – 2 Year","Government savings","Low",7,"lump","Two-year Post Office Time Deposit."],
+["Post Office TD – 3 Year","Government savings","Low",7.1,"lump","Three-year Post Office Time Deposit."],
+["Post Office TD – 5 Year","Government savings","Low",7.5,"lump","Five-year Post Office Time Deposit."],
+["Public Provident Fund (PPF)","Government savings","Low",7.1,"annual","Long-term government savings scheme with a 15-year maturity period."],
+["National Savings Certificate (NSC)","Government savings","Low",7.7,"lump","Five-year government savings certificate."],
+["Kisan Vikas Patra (KVP)","Government savings","Low",7.5,"lump","Government savings certificate with a notified maturity period."],
+["Sukanya Samriddhi Yojana","Government savings","Low",8.2,"annual","Long-term scheme for eligible girl children."],
+["Senior Citizens Savings Scheme (SCSS)","Government savings","Low",8.2,"income","Scheme for eligible senior citizens with quarterly interest payouts."],
+["Post Office Monthly Income Scheme","Government savings","Low",7.4,"income","Five-year scheme providing monthly interest payouts."],
+["Treasury Bills","Government securities","Low",null,"lump","Short-term government securities with 91, 182 or 364-day maturities."],
+["Government Securities (G-Secs)","Government securities","Low–Moderate",null,"lump","Debt securities issued by central or state governments."],
+["State Development Loans (SDLs)","Government securities","Low–Moderate",null,"lump","Debt securities issued by state governments."],
+["RBI Floating Rate Savings Bonds","Government securities","Low",null,"income","Government savings bonds with periodically reset interest."],
+["Corporate Bonds","Bonds","Varies",null,"income","Debt issued by companies; credit risk varies."],
+["Public Sector Bonds","Bonds","Varies",null,"income","Bonds issued by public sector organisations."],
+["Tax-free Bonds (existing issues)","Bonds","Varies",null,"income","Eligible outstanding bonds; availability depends on the secondary market."],
+["Debt Mutual Funds","Mutual funds","Low–Moderate",null,"lump","Funds investing mainly in debt and money-market instruments."],
+["Liquid Mutual Funds","Mutual funds","Low–Moderate",null,"lump","Debt funds focused on short-maturity instruments."],
+["Overnight Mutual Funds","Mutual funds","Low",null,"lump","Funds investing in overnight securities."],
+["Money Market Mutual Funds","Mutual funds","Low–Moderate",null,"lump","Funds investing in short-term money-market instruments."],
+["Gilt Mutual Funds","Mutual funds","Moderate",null,"lump","Mutual funds investing predominantly in government securities."],
+["Equity Mutual Funds","Mutual funds","Very High",null,"monthly","Funds investing mainly in company shares."],
+["Index Mutual Funds","Mutual funds","Very High",null,"monthly","Funds designed to track a selected market index."],
+["Flexi-cap Mutual Funds","Mutual funds","Very High",null,"monthly","Equity funds with flexibility across market capitalisations."],
+["ELSS Mutual Funds","Mutual funds","Very High",null,"monthly","Equity-linked tax-saving funds with a three-year lock-in per investment."],
+["Exchange Traded Funds (ETFs)","Market-linked","Varies",null,"lump","Funds traded on exchanges that track an index or asset."],
+["Direct Stocks / Shares","Market-linked","Very High",null,"lump","Shares represent ownership in listed companies."],
+["Gold ETFs","Gold","Moderate–High",null,"lump","Exchange-traded exposure to gold prices."],
+["Physical Gold","Gold","Moderate–High",null,"lump","Gold in physical form, with possible storage and making costs."],
+["Real Estate","Property","Moderate–High",null,"lump","Property ownership for potential rent or appreciation."],
+["REITs","Property","Moderate",null,"lump","Listed trusts investing in income-generating real estate."],
+["National Pension System (NPS)","Retirement","Market-linked",null,"annual","Regulated retirement investment system with permitted asset allocation choices."]
+];
+const currentRates=[["PPF",7.1,"Annual compounding"],["NSC",7.7,"Annual compounding"],["Sukanya Samriddhi",8.2,"Annual compounding"],["KVP",7.5,"Scheme maturity rules"],["SCSS",8.2,"Quarterly payout"],["Post Office MIS",7.4,"Monthly payout"],["Post Office RD – 5 Year",6.7,"Quarterly compounding"],["Post Office TD – 1 Year",6.9,"Quarterly compounding"],["Post Office TD – 2 Year",7,"Quarterly compounding"],["Post Office TD – 3 Year",7.1,"Quarterly compounding"],["Post Office TD – 5 Year",7.5,"Quarterly compounding"],["Post Office Savings Account",4,"Savings interest"]];
+const $=id=>document.getElementById(id), app=$("app");
+let selected=0,quizIndex=0,score=0,answered=false,qrUrl="http://127.0.0.1:5000/";
+const davCharts={};
+function drawDAVChart(id,type,labels,datasets){
+ const canvas=$(id); if(!canvas || typeof Chart==="undefined") return;
+ if(davCharts[id]) davCharts[id].destroy();
+ davCharts[id]=new Chart(canvas,{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:"bottom"}},scales:type==="doughnut"?{}:{y:{beginAtZero:true,ticks:{callback:v=>"₹"+Number(v).toLocaleString("en-IN")}}}}});
+}
+const money=n=>"₹"+Number(n).toLocaleString("en-IN",{maximumFractionDigits:2});
+const fmt=(title,sub)=>`<h2>${title}</h2><p class="muted">${sub||""}</p>`;
+function show(page){
+ document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+ const views={home,plansPage,ratesPage,calculatorPage,comparePage,inflationPage,goalsPage,learnPage,quizPage,taxPage,qrCodePage};
+ const map={plans:"plansPage",rates:"ratesPage",calculator:"calculatorPage",compare:"comparePage",inflation:"inflationPage",goals:"goalsPage",learn:"learnPage",quiz:"quizPage",tax:"taxPage",qrcode:"qrCodePage",home:"home"};
+ app.innerHTML=views[map[page]]();
+ wire(page);
+}
+$("nav").addEventListener("click",e=>{const b=e.target.closest("[data-page]");if(b)show(b.dataset.page)});
+
+function home(){
+ return fmt("Welcome to DAV Investment Sphere","Your interactive guide to India's investment landscape.")+
+ `<div class="grid">${[
+  ["📚","39 Investment Plans","plans"],
+  ["📈","Current Rates","rates"],
+  ["🧮","39 Dedicated Calculators","calculator"],
+  ["⚖️","Compare Investments","compare"],
+  ["🎯","Financial Goal Planner","goals"],
+  ["📉","Inflation Calculator","inflation"],
+  ["📖","Financial Education","learn"],
+  ["🧠","Knowledge Quiz","quiz"],
+  ["📋","Taxation Guide","tax"],
+  ["📱","Website QR Code","qrcode"]
+ ].map(x=>`<button class="planbtn" data-go="${x[2]}"><div style="font-size:24px">${x[0]}</div><b>${x[1]}</b><p class="muted">Open module →</p></button>`).join("")}</div>`+
+ `<div class="card" style="margin-top:14px"><b>Important</b><p class="muted">Fixed rates apply only to specific schemes and tenures. Very High risk equity investments and market-linked assets do not have guaranteed returns.</p></div>`+
+ `<div class="card"><b>Quick Share QR Code</b><p class="muted">Generate a QR code for this website to share during presentations or across devices.</p><button class="btn secondary" data-go="qrcode">Open QR Code Generator →</button></div>`;
+}
+
+function plansPage(){
+ return fmt("39 Investment Plans","Search, select a plan and open its dedicated calculator.")+
+ `<input id="search" placeholder="Search investment plans..."><select id="category"><option>All categories</option>${[...new Set(plans.map(p=>p[1]))].map(c=>`<option>${c}</option>`).join("")}</select><p class="muted" id="count">${plans.length} plans</p><div id="planlist" class="grid">${plans.map(planCard).join("")}</div>`;
+}
+function planCard(p,i){
+ return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><b>${i+1}. ${p[0]}</b><span class="tag">${p[2]}</span></div><p class="muted">${p[1]} · ${p[3]===null?"Variable rate":p[3]+"% p.a."}</p><p>${p[5]}</p><button class="btn" data-plan="${i}">Details & Calculator</button></div>`;
+}
+
+function ratesPage(){
+ return fmt("Current Published Rates","Government small-savings reference rates and the latest available RBI/FBIL indicators retrieved by your local Python server.")+
+ `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><h3>RBI & FBIL market indicators</h3><p class="muted">Fetched from your local Flask server. These are published observations, not guaranteed investment returns.</p></div><button class="btn" id="refreshRbi">Refresh data</button></div><div id="rbiStatus" class="result">Connecting to your local RBI data service…</div><div id="rbiData"></div></div>`+
+ `<div class="card" style="overflow-x:auto"><h3>Government small-savings rates</h3><p class="muted">Reference rates for 1 October–31 December 2026. These are separate from RBI policy rates and are not fetched by the RBI endpoint.</p><table><tr><th>Scheme</th><th>Rate p.a.</th><th>Method</th></tr>${currentRates.map(r=>`<tr><td>${r[0]}</td><td><b>${r[1].toFixed(2)}%</b></td><td>${r[2]}</td></tr>`).join("")}</table></div>`+
+ `<div class="card"><b>Bank FD/RD rates</b><p class="muted">These vary by bank, tenure, amount and customer category. Use the bank's current official rate sheet.</p><b>Market-linked plans</b><p class="muted">Stocks, mutual funds, ETFs, REITs and gold have no single fixed annual interest rate. Their calculators use an assumption entered by the visitor.</p></div>`+
+ `<p class="muted">Official references: <a href="https://dea.gov.in/" target="_blank" rel="noopener">Ministry of Finance</a> · <a href="https://www.indiapost.gov.in/" target="_blank" rel="noopener">India Post</a> · <a href="https://www.rbi.org.in/" target="_blank" rel="noopener">RBI</a>.</p>`;
+}
+
+async function loadRbiData(){
+ const status=$("rbiStatus"), output=$("rbiData"), button=$("refreshRbi");
+ if(!status||!output)return;
+ status.textContent="Fetching the latest available data from your local Flask server…";
+ if(button)button.disabled=true;
+ try{
+  const response=await fetch("/api/rbi/current-rates",{cache:"no-store"});
+  const data=await response.json();
+  if(!response.ok||!data.success)throw new Error(data.error||`Server returned HTTP ${response.status}`);
+  const r=data.rates||{};
+  const percent=[ ["Policy repo rate",r.repo], ["Standing Deposit Facility (SDF)",r.sdf], ["Marginal Standing Facility (MSF)",r.msf], ["Bank rate",r.bank_rate], ["Fixed reverse repo rate",r.reverse_repo], ["Cash Reserve Ratio (CRR)",r.crr], ["Statutory Liquidity Ratio (SLR)",r.slr] ];
+  const fx=[["USD / INR",r.usd_inr],["GBP / INR",r.gbp_inr],["EUR / INR",r.eur_inr]];
+  const rows=items=>items.filter(x=>x[1]!==null&&x[1]!==undefined).map(x=>`<tr><td>${x[0]}</td><td><b>${Number(x[1]).toFixed(4).replace(/\.?0+$/,'')} ${x[0].includes("INR")?"":"%"}</b></td></tr>`).join("");
+  const observed=data.observation_date||"Not supplied";
+  const retrieved=data.retrieved_at?new Date(data.retrieved_at).toLocaleString():"Not supplied";
+  output.innerHTML=`<div class="row"><div><h4>RBI monetary indicators</h4><table>${rows(percent)||"<tr><td>No policy rates found</td></tr>"}</table></div><div><h4>FBIL reference exchange rates</h4><table>${rows(fx)||"<tr><td>No exchange rates found</td></tr>"}</table></div></div>`;
+  status.innerHTML=`<b>Data received successfully</b><p class="muted">Observation: ${observed}<br>Fetched by your server: ${retrieved}<br>Source page: <a href="${data.source_url||"https://www.rbi.org.in/"}" target="_blank" rel="noopener">${data.source||"RBI"}</a></p>`;
+ }catch(error){
+  output.innerHTML="";
+  status.innerHTML=`<b>Could not load the data.</b><p class="muted">${String(error.message||error)}<br>Make sure the Flask server is running and open this app through <b>http://127.0.0.1:5000/</b>, not by double-clicking the HTML file.</p>`;
+ }finally{if(button)button.disabled=false;}
+}
+
+function calculatorPage(){
+ let p=plans[selected];
+ return fmt("Dedicated Investment Calculator",p[0])+
+ `<div class="card"><label>Select investment plan</label><select id="calcPlan">${plans.map((x,i)=>`<option value="${i}" ${i===selected?"selected":""}>${i+1}. ${x[0]} (${x[2]} Risk)</option>`).join("")}</select><p class="muted"><b>Risk Category:</b> ${p[2]} · ${p[5]}</p><div class="row"><label>Initial amount (₹)<input id="principal" type="number" min="0" value="100000"></label><label>Annual rate (%)<input id="rate" type="number" min="0" max="50" step=".01" value="${p[3]===null?10:p[3]}"></label><label>Duration (years)<input id="years" type="number" min=".1" max="60" step=".5" value="5"></label><label>Compounding<select id="freq"><option value="4">Quarterly</option><option value="12">Monthly</option><option value="1">Yearly</option></select></label></div><div id="contrib" class="${["monthly","annual"].includes(p[4])?"":"hidden"}"><label>${p[4]==="monthly"?"Monthly":"Annual"} contribution (₹)<input id="contribution" type="number" min="0" value="${p[4]==="monthly"?5000:50000}"></label></div><p class="muted">${p[3]===null?"Enter an assumed rate. No single fixed return is published for this investment.":"Prefilled with the scheme's displayed published rate. Confirm current scheme conditions."}</p><button class="btn" id="calculate">Calculate hypothetical outcome</button><div id="calcResult"></div><div class="chart-grid"><div class="card"><b>Estimated growth over time</b><div class="chart-wrap"><canvas id="growthChart"></canvas></div></div><div class="card"><b>Investment breakdown</b><div class="chart-wrap"><canvas id="breakdownChart"></canvas></div></div></div></div>`+
+ `<p class="muted">Simplified educational estimate. Official scheme maturity calculations may use different deposit dates, balance rules, fees and tax treatment.</p>`;
+}
+function calculate(){
+ let p=plans[selected],a=+$("principal").value,r=+$("rate").value/100,y=+$("years").value,f=+$("freq").value,c=$("contribution")?+$("contribution").value:0;
+ if(a<0||y<=0||y>60||r<0||r>.5||c<0||(!a&&!c)){$("calcResult").innerHTML='<div class="result">Please enter valid values. Duration must be up to 60 years and rate up to 50%.</div>';return}
+ let value=a,invested=a,growth=0,monthly=Math.pow(1+r,1/12)-1;
+ if(p[4]==="monthly"){let n=Math.round(y*12);invested=a+c*n;value=a*Math.pow(1+monthly,n)+(monthly===0?c*n:c*(Math.pow(1+monthly,n)-1)/monthly*(1+monthly));}
+ else if(p[4]==="annual"){let n=Math.floor(y);invested=a+c*n;value=a*Math.pow(1+r,n)+(r===0?c*n:c*(Math.pow(1+r,n)-1)/r*(1+r));}
+ else if(p[4]==="income"){growth=a*r*y;value=a+growth;}
+ else value=a*Math.pow(1+r/f,y*f);
+ if(p[4]!=="income")growth=value-invested;
+ $("calcResult").innerHTML=`<div class="result"><p class="muted">${p[4]==="income"?"Principal plus estimated interest payouts":"Estimated future value"}</p><div class="big">${money(value)}</div><div class="row"><div>Total invested<br><b>${money(invested)}</b></div><div>Estimated growth<br><b>${money(growth)}</b></div></div><p class="muted">Assumed rate: ${(r*100).toFixed(2)}% p.a. · ${y} years. ${p[3]===null?"User-entered assumption, not a forecast.":"Simplified estimate using the displayed rate."}</p></div>`;
+ let labels=[],series=[]; for(let yr=0;yr<=Math.max(1,Math.ceil(y));yr++){let t=Math.min(yr,y),v;
+  if(p[4]==="monthly"){let n=Math.round(t*12);v=a*Math.pow(1+monthly,n)+(monthly===0?c*n:c*(Math.pow(1+monthly,n)-1)/monthly*(1+monthly));}
+  else if(p[4]==="annual"){let n=Math.floor(t);v=a*Math.pow(1+r,n)+(r===0?c*n:c*(Math.pow(1+r,n)-1)/r*(1+r));}
+  else if(p[4]==="income")v=a+(a*r*t);
+  else v=a*Math.pow(1+r/f,t*f);
+  labels.push(yr===0?"Start":yr+" yr");series.push(Number(v.toFixed(2))); }
+ if(labels[labels.length-1]!==y+" yr"){labels.push(y+" yr");series.push(Number(value.toFixed(2)));}
+ drawDAVChart("growthChart","line",labels,[{label:"Estimated value",data:series,tension:.25}]);
+ drawDAVChart("breakdownChart","doughnut",["Total invested","Estimated gain","Estimated loss"],[{data:[Math.max(0,invested),Math.max(0,growth),Math.max(0,-growth)]}]);
+}
+
+function comparePage(){
+ return fmt("Compare Investments","Compare two plans by category, risk, rate and description.")+
+ `<div class="card"><label>First plan<select id="ca">${plans.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join("")}</select></label><label>Second plan<select id="cb">${plans.map((p,i)=>`<option value="${i}" ${i===10?"selected":""}>${p[0]}</option>`).join("")}</select></label><button class="btn" id="compare">Compare</button><div id="comparison"></div></div>`;
+}
+function compare(){
+ let a=plans[+$("ca").value],b=plans[+$("cb").value];
+ $("comparison").innerHTML=`<div style="overflow-x:auto"><table><tr><th>Factor</th><th>${a[0]}</th><th>${b[0]}</th></tr>${[[1,"Category"],[2,"Risk"],[3,"Rate"],[5,"Description"]].map(r=>`<tr><td>${r[1]}</td><td>${a[r[0]]===null?"Variable / assumed":a[r[0]]+(r[0]===3?"%":"")}</td><td>${b[r[0]]===null?"Variable / assumed":b[r[0]]+(r[0]===3?"%":"")}</td></tr>`).join("")}</table></div>`;
+}
+
+function inflationPage(){
+ return fmt("Inflation Calculator","Calculate future purchasing power — NOT investment maturity value.")+
+ `<div class="card"><label>Amount today (₹)<input id="ia" type="number" value="100000"></label><label>Annual inflation (%)<input id="ir" type="number" value="6" step=".1"></label><label>Years<input id="iy" type="number" value="10"></label><button class="btn" id="infl">Calculate purchasing power</button><div id="inflResult"></div><div class="chart-wrap"><canvas id="inflationChart"></canvas></div></div>`+
+ `<div class="card"><b>What does this mean?</b><p class="muted">It estimates what today's amount may buy in the future if inflation stays constant. It does not calculate investment growth or maturity value.</p></div>`;
+}
+function inflation(){
+ let a=+$("ia").value,r=+$("ir").value/100,y=+$("iy").value;
+ if(a<=0||r<0||r>1||y<0||y>100){$("inflResult").textContent="Enter valid values.";return}
+ let pv=a/Math.pow(1+r,y),future=a*Math.pow(1+r,y);
+ $("inflResult").innerHTML=`<div class="result"><p class="muted">Future purchasing power of today's money</p><div class="big">${money(pv)}</div><p>At ${$("ir").value}% inflation, ${money(a)} today may have purchasing power similar to ${money(pv)} after ${y} years.</p><hr><p>Estimated future cost of something costing ${money(a)} today:</p><b>${money(future)}</b><p class="muted">Illustration only. Actual inflation varies.</p></div>`;
+ let labels=Array.from({length:Math.min(y,30)+1},(_,i)=>i+" yr");
+ let purchasing=labels.map((_,i)=>a/Math.pow(1+r,i)),cost=labels.map((_,i)=>a*Math.pow(1+r,i));
+ drawDAVChart("inflationChart","line",labels,[{label:"Purchasing power",data:purchasing},{label:"Future cost",data:cost}]);
+}
+
+function goalsPage(){
+ return fmt("Financial Goal Planner","Estimate a monthly contribution towards a future target, including an inflation point.")+
+ `<div class="card"><div class="row"><label>Target amount in today's ₹<input id="ga" type="number" value="1000000"></label><label>Years<input id="gy" type="number" value="10"></label><label>Assumed annual return (%)<input id="gr" type="number" value="10" step=".1"></label><label>Inflation point / rate (% p.a.)<input id="ginfl" type="number" value="6" step=".1" min="0" max="30"></label></div><button class="btn" id="goal">Calculate monthly contribution</button><div id="goalResult"></div><div class="chart-wrap"><canvas id="goalChart"></canvas></div></div>`;
+}
+function goal(){
+ let todayTarget=+$("ga").value,y=+$("gy").value,r=+$("gr").value/100,inf=+$("ginfl").value/100;
+ if(todayTarget<=0||y<=0||y>60||r<0||r>.5||inf<0||inf>.3){$("goalResult").innerHTML='<div class="result">Enter valid values (years 1–60, return up to 50%, inflation up to 30%).</div>';return}
+ let inflatedTarget=todayTarget*Math.pow(1+inf,y);
+ let n=Math.round(y*12),m=Math.pow(1+r,1/12)-1;
+ let c=m===0?inflatedTarget/n:inflatedTarget*m/(Math.pow(1+m,n)-1);
+ $("goalResult").innerHTML=`<div class="result"><p class="muted">Estimated monthly contribution (for inflation-adjusted target)</p><div class="big">${money(c)}</div><div class="row" style="margin-top:10px"><div>Today's goal value<br><b>${money(todayTarget)}</b></div><div>Inflation point (${(inf*100).toFixed(1)}% p.a.)<br><b>${(inf*100).toFixed(1)}%</b></div><div>Inflation-adjusted target (${y} yrs)<br><b>${money(inflatedTarget)}</b></div><div>Total contributions<br><b>${money(c*n)}</b></div></div><p class="muted" style="margin-top:8px">Inflation raises the required target from ${money(todayTarget)} to ${money(inflatedTarget)} over ${y} years.</p></div>`;
+ let labels=Array.from({length:y+1},(_,i)=>i+" yr");
+ let values=labels.map((_,i)=>i===0?0:(m===0?c*i*12:c*(Math.pow(1+m,i*12)-1)/m));
+ let inflCurve=labels.map((_,i)=>todayTarget*Math.pow(1+inf,i));
+ drawDAVChart("goalChart","line",labels,[{label:"Estimated accumulated value",data:values,tension:.25},{label:"Inflation-adjusted goal path",data:inflCurve,tension:.25}]);
+}
+
+const lessons=[
+ ["Compound interest","Interest on principal and previously accumulated interest."],
+ ["Diversification","Spreading investments across different assets to reduce concentration risk."],
+ ["Inflation","A general rise in prices that reduces purchasing power."],
+ ["Liquidity","How quickly an asset can be converted into cash."],
+ ["Risk and return","Potential returns are linked to uncertainty and risk."],
+ ["Asset allocation","How money is divided across asset classes."],
+ ["SIP","A method of investing fixed amounts at regular intervals."],
+ ["Time value of money","Money today may be invested and earn returns over time."]
+];
+function learnPage(){
+ return fmt("Financial Education Centre","Learn important financial concepts.")+
+ lessons.map((x,i)=>`<details><summary>${i+1}. ${x[0]}</summary><p class="muted">${x[1]}</p></details>`).join("");
+}
+
+const questions=[
+ ["What does diversification help reduce?",["Concentration risk","All risk","Inflation","Tax"],0,"Diversification spreads exposure across investments."],
+ ["What is a SIP?",["A loan","A regular investment method","A tax","A fixed deposit"],1,"SIP means Systematic Investment Plan."],
+ ["What happens to purchasing power when prices rise?",["It rises","It falls","It doubles","Nothing"],1,"Inflation reduces purchasing power."],
+ ["Which represents ownership in a company?",["FD","RD","Stock","T-bill"],2,"A share represents part ownership."],
+ ["Which is generally least liquid?",["Savings account","Listed stock","Property","Liquid fund"],2,"Property can take time to sell."],
+ ["Does a SIP guarantee profit?",["Yes","No","After five years","For large amounts"],1,"SIPs do not guarantee returns."],
+ ["What is compound interest?",["Interest on principal only","Interest on principal and accumulated interest","A tax","A fee"],1,"Compounding generates returns on accumulated returns."],
+ ["What is liquidity?",["Speed of converting an asset into cash","A tax","A loan","A rate"],0,"Liquidity measures how readily an asset can become cash."],
+ ["Which is a government savings scheme?",["PPF","Private equity","Company stock","Cryptocurrency"],0,"PPF is a government small-savings scheme."],
+ ["Higher potential returns usually involve?",["No risk","Higher uncertainty","Guaranteed profit","No fluctuations"],1,"Higher potential returns often involve greater uncertainty."]
+];
+function quizPage(){
+ return fmt("Financial Knowledge Quiz","10 questions to test your financial knowledge.")+
+ `<div class="card"><p id="qnum"></p><div id="qarea"></div></div>`;
+}
+function showQuestion(){
+ $("qnum").textContent=`Question ${quizIndex+1} of 10 · Score: ${score}`;
+ let q=questions[quizIndex];answered=false;
+ $("qarea").innerHTML=`<h3>${q[0]}</h3>${q[1].map((a,i)=>`<button class="planbtn" style="margin:5px 0" data-answer="${i}">${String.fromCharCode(65+i)}. ${a}</button>`).join("")}<div id="feedback"></div><button class="btn" id="next" disabled>Next</button>`;
+}
+
+function taxPage(){
+ return fmt("Taxation & Banking Reference Rates in India","Educational overview of capital gains rules, mutual fund categories, and key banking/reserve rates. Tax laws and monetary rates can change.")+
+ `<div class="card"><h3>Banking & Reserve Rates: Base Rate, SLR & CRR</h3><p class="muted">These monetary and banking benchmarks influence credit costs, liquidity, and interest rate transmission across the economy.</p><div style="overflow-x:auto"><table><tr><th>Indicator</th><th>What It Means</th><th>Role in Banking & Finance</th></tr><tr><td><b>Base Rate</b></td><td>Legacy minimum lending benchmark once used by banks before MCLR / external benchmarks</td><td>Serves as a historical/reference lending rate floor for older bank loans and rate comparisons.</td></tr><tr><td><b>SLR (Statutory Liquidity Ratio)</b></td><td>Percentage of Net Demand and Time Liabilities (NDTL) banks must hold in liquid assets (cash, gold, approved govt. securities)</td><td>Ensures bank solvency and regulates credit expansion; also linked to government bond demand.</td></tr><tr><td><b>CRR (Cash Reserve Ratio)</b></td><td>Percentage of NDTL banks must keep as cash reserves with the RBI</td><td>Directly controls liquidity in the banking system (no interest is earned by banks on CRR balances).</td></tr></table></div><p class="muted" style="margin-top:8px">Tip: Check the <b>Current Rates</b> tab to pull live SLR and CRR values from your local RBI server endpoint when running Flask.</p></div>`+
+ `<div class="card"><h3>Equity Funds & Mutual Funds Taxation</h3><p class="muted">For equity-oriented mutual funds and equity shares, capital gains are classified by holding period while dividends are taxed according to your income tax slab.</p><div style="overflow-x:auto"><table><tr><th>Tax Component / Fund Type</th><th>Tax Treatment</th><th>Key Notes</th></tr><tr><td><b>Short-Term Capital Gains (STCG)</b></td><td><b>20%</b> (plus applicable surcharge & cess)</td><td>Applies to listed equity shares and equity-oriented mutual funds sold within the short-term holding window (typically up to 12 months).</td></tr><tr><td><b>Long-Term Capital Gains (LTCG)</b></td><td>Taxed under <b>Long-Term Capital Gain (LTCG)</b> provisions</td><td>Applies when held beyond the short-term threshold; statutory exemption limits and applicable LTCG rates apply under current Finance Act rules.</td></tr><tr><td><b>Dividends</b></td><td>Added to taxable income & taxed at <b>slab rates</b></td><td>Dividends received from mutual funds or shares are taxable in the hands of the investor at applicable income tax slab rates (TDS may apply above threshold).</td></tr><tr><td><b>Index Funds</b></td><td>Taxed as <b>Equity Mutual Funds</b> (STCG at 20%, LTCG rules on long-term holdings, dividends at slab)</td><td>Passive funds tracking an index (e.g., Nifty 50 / Sensex) generally follow equity taxation when equity allocation meets the threshold.</td></tr><tr><td><b>Diversified Funds</b></td><td>Taxed according to underlying asset mix (equity vs. debt)</td><td>Diversified equity funds (such as flexi-cap / multi-cap funds with ≥65% equity) follow equity tax rules; hybrid/debt-oriented funds follow their respective rules.</td></tr><tr><td><b>Other Equity Funds</b></td><td>Taxed as <b>Equity Mutual Funds</b> (STCG at 20%, LTCG rules, dividends in slabs)</td><td>Includes sectoral, thematic, large/mid/small-cap, and ELSS funds meeting equity fund criteria.</td></tr></table></div></div>`+
+ `<div class="card"><h3>Interactive Capital Gains & Dividend Tax Estimator</h3><p class="muted">Estimate illustrative tax on a gain or dividend payout under STCG (20%), LTCG, or slab-rate dividend rules.</p><div class="row"><label>Gain or Dividend Amount (₹)<input id="taxAmt" type="number" min="0" value="100000"></label><label>Category / Treatment<select id="taxType"><option value="stcg20">STCG — Equity / Equity MF (20%)</option><option value="ltcg">LTCG — Equity / Equity MF (Illustrative 12.5%)</option><option value="divSlab">Dividend — Taxed at Slab Rate</option></select></label><label>Applicable Slab / Assumed Rate (%)<input id="taxSlab" type="number" min="0" max="45" step="0.5" value="20"></label></div><button class="btn" id="calcTax">Estimate illustrative tax</button><div id="taxResult"></div></div>`+
+ `<div class="card"><h3>Other Common Investments</h3><p class="muted"><b>Fixed Deposits & Recurring Deposits:</b> Interest earned is generally added to income and taxed per applicable slab rules.<br><b>PPF & Sukanya Samriddhi:</b> Governed by specific notified exemptions under current tax laws.<br><b>NPS & Gold/Property:</b> Subject to scheme-specific withdrawal/deduction rules or asset/holding-period capital gains provisions.</p></div>`+
+ `<p class="muted">Refer to the <a href="https://www.incometax.gov.in/" target="_blank" rel="noopener">Income Tax Department</a> and <a href="https://www.rbi.org.in/" target="_blank" rel="noopener">RBI</a>. This is educational information, not tax or legal advice.</p>`;
+}
+
+function calcTaxEstimate(){
+ const amt=+$("taxAmt").value;
+ const type=$("taxType").value;
+ const slab=+$("taxSlab").value;
+ if(isNaN(amt)||amt<0||isNaN(slab)||slab<0||slab>50){
+  $("taxResult").innerHTML='<div class="result">Please enter a valid non-negative amount and rate.</div>';
+  return;
+ }
+ let rate=0, label="";
+ if(type==="stcg20"){rate=20;label="Short-Term Capital Gain (STCG @ 20%)";}
+ else if(type==="ltcg"){rate=12.5;label="Long-Term Capital Gain (LTCG illustrative @ 12.5%)";}
+ else {rate=slab;label=`Dividend / Slab Rate (@ ${slab}%)`;}
+ const estTax=amt*(rate/100);
+ const netAfterTax=amt-estTax;
+ $("taxResult").innerHTML=`<div class="result"><p class="muted">${label}</p><div class="big">${money(estTax)}</div><p>Estimated net amount after tax: <b>${money(netAfterTax)}</b> (excluding cess/surcharge).</p></div>`;
+}
+
+function qrCodePage(){
+ return fmt("Website QR Code","Generate and download a QR code to open DAV Investment Sphere.")+
+ `<div class="card"><label>Website URL or link for the QR code<input id="qrInput" type="url" value="${qrUrl}" placeholder="https://your-site-or-url.com"></label><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="genQr">Generate QR Code</button><button class="btn secondary" id="useLocalQr">Use http://127.0.0.1:5000/</button><a class="btn secondary" id="downloadQr" download="dav-investment-sphere-qr.png" style="text-decoration:none;display:inline-flex;align-items:center">Download PNG</a></div><div class="qr-box"><canvas id="qrCanvas"></canvas><div class="muted" id="qrCaption"></div></div><p class="muted" style="margin-top:10px">Tip: If scanning from a phone on the same Wi-Fi network, replace <code>127.0.0.1</code> with your computer's local IPv4 address (e.g., <code>http://192.168.1.10:5000/</code>) or your hosted link.</p></div>`;
+}
+
+function renderQRCode(){
+ const input=$("qrInput"), canvas=$("qrCanvas"), caption=$("qrCaption"), dl=$("downloadQr");
+ if(!input||!canvas)return;
+ const url=(input.value||"").trim()||"http://127.0.0.1:5000/";
+ qrUrl=url;
+ if(typeof QRCode==="undefined"){
+  if(caption)caption.textContent="QR library could not load. Check internet access for the QR script.";
+  return;
+ }
+ QRCode.toCanvas(canvas,url,{width:220,margin:2,color:{dark:"#10294c",light:"#ffffff"}},err=>{
+  if(err){
+   if(caption)caption.textContent="Could not generate QR code: "+err.message;
+   return;
+  }
+  if(caption)caption.innerHTML=`<b>Encoded Link:</b> ${url}`;
+  if(dl)dl.href=canvas.toDataURL("image/png");
+ });
+}
+
+function wire(page){
+app.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>show(b.dataset.go)));
+if(page==="plans"){
+ const update=()=>{
+  let q=$("search").value.toLowerCase(),c=$("category").value;
+  let arr=plans.map((p,i)=>({p,i})).filter(o=>(c==="All categories"||o.p[1]===c)&&o.p[0].toLowerCase().includes(q));
+  $("count").textContent=arr.length+" plans found";
+  $("planlist").innerHTML=arr.map(o=>planCard(o.p,o.i)).join("")||"No matching plans.";
+ };
+ $("search").addEventListener("input",update);
+ $("category").addEventListener("change",update);
+ $("planlist").addEventListener("click",e=>{let b=e.target.closest("[data-plan]");if(b){selected=+b.dataset.plan;show("calculator")}});
+}
+if(page==="calculator"){
+ $("calcPlan").addEventListener("change",e=>{selected=+e.target.value;show("calculator")});
+ $("calculate").addEventListener("click",calculate);
+}
+if(page==="compare"){$("compare").addEventListener("click",compare);compare()}
+if(page==="rates"){$("refreshRbi").addEventListener("click",loadRbiData);loadRbiData()}
+if(page==="inflation")$("infl").addEventListener("click",inflation);
+if(page==="goals")$("goal").addEventListener("click",goal);
+if(page==="tax"){$("calcTax").addEventListener("click",calcTaxEstimate);calcTaxEstimate()}
+if(page==="qrcode"){
+ $("genQr").addEventListener("click",renderQRCode);
+ $("qrInput").addEventListener("input",renderQRCode);
+ $("useLocalQr").addEventListener("click",()=>{ $("qrInput").value="http://127.0.0.1:5000/"; renderQRCode(); });
+ renderQRCode();
+}
+if(page==="quiz"){
+ quizIndex=0;score=0;showQuestion();
+ $("qarea").addEventListener("click",e=>{
+  let b=e.target.closest("[data-answer]");
+  if(b&&!answered){
+   answered=true;let q=questions[quizIndex],correct=+b.dataset.answer===q[2];
+   if(correct)score++;
+   $("qnum").textContent=`Question ${quizIndex+1} of 10 · Score: ${score}`;
+   $("qarea").querySelectorAll("[data-answer]").forEach(x=>{x.disabled=true;if(+x.dataset.answer===q[2])x.style.borderColor="#16876f"});
+   $("feedback").innerHTML=`<p><b>${correct?"Correct!":"Not quite."}</b><br><span class="muted">${q[3]}</span></p>`;
+   $("next").disabled=false;
+  }
+  if(e.target.id==="next"&&answered){
+   if(quizIndex<9){quizIndex++;showQuestion()}
+   else{$("qarea").innerHTML=`<h2>Your score: ${score}/10</h2><button class="btn" id="retry">Try again</button>`;$("retry").addEventListener("click",()=>{quizIndex=0;score=0;showQuestion()})}
+  }
+ });
+}
+}
+show("home");
+</script>
+</body>
+</html>
